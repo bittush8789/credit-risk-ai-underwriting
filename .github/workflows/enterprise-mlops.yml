@@ -1,0 +1,51 @@
+name: Enterprise MLOps Pipeline
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  train-and-register:
+    needs: security-scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run Retraining Pipeline
+        run: python training/train.py
+      - name: Log Model to MLflow Registry
+        run: |
+          # Use MLflow CLI to transition model to Production stage
+          mlflow models set-tag --name "CreditRiskModel" --version 1 --key "stage" --value "production"
+
+  deploy-gitops:
+    needs: train-and-register
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Update KServe Storage URI
+        run: |
+          # Dynamically update the S3 path with the new model version/timestamp
+          sed -i "s|storageUri:.*|storageUri: s3://credit-risk-bucket/v4/$(date +'%Y%m%d')/|g" kserve/inference-prod.yaml
+      - name: Commit and Push
+        run: |
+          git config --global user.name "MLOps-Bot"
+          git config --global user.email "mlops-bot@github.com"
+          git add kserve/inference-prod.yaml
+          git commit -m "Auto-update model: $(date +'%Y-%m-%d')"
+          git push origin main

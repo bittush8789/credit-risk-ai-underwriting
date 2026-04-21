@@ -7,4 +7,11 @@ spec:
   predictor:
     serviceAccountName: sa-s3-access
     sklearn:
-      storageUri: s3://credit-risk-bucket/models/credit_risk_model.pkl
+      storageUri: s3://credit-risk-bucket/v4/model.pkl
+      resources:
+        limits:
+          cpu: "1"
+          memory: 2Gi
+        requests:
+          cpu: "500m"
+          memory: 1Gi

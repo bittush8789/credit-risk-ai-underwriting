@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: credit-risk-model
+  name: credit-risk-ai
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/bittush8789/credit-risk-ai-underwriting.git
-    targetRevision: cicd
-    path: k8s
+    targetRevision: main
+    path: kserve
   destination:
     server: https://kubernetes.default.svc
     namespace: credit-risk-model

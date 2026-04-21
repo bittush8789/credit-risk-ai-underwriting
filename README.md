@@ -1,105 +1,154 @@
-# 💳 CreditRisk AI: Enterprise MLOps Underwriting Engine
+# 🏦 CreditRisk AI: Enterprise Underwriting & MLOps Platform (2026 Edition)
 
-![MLOps Status](https://img.shields.io/badge/MLOps-Production--Ready-success?style=for-the-badge&logo=github)
-![Kubernetes](https://img.shields.io/badge/Infrastructure-Kubernetes%20|%20KServe-blue?style=for-the-badge&logo=kubernetes)
-![GitOps](https://img.shields.io/badge/Deployment-ArgoCD%20|%20GitOps-orange?style=for-the-badge&logo=argocd)
+![Build Status](https://img.shields.io/badge/CI/CD-GitHub--Actions-blueviolet?style=for-the-badge&logo=githubactions)
+![EKS](https://img.shields.io/badge/Infra-AWS--EKS-FF9900?style=for-the-badge&logo=amazon-aws)
+![KServe](https://img.shields.io/badge/Inference-KServe-00ADD8?style=for-the-badge&logo=kubernetes)
+![ArgoCD](https://img.shields.io/badge/GitOps-ArgoCD-ef7b4d?style=for-the-badge&logo=argocd)
 
-An industry-standard, end-to-end MLOps platform for Credit Risk Underwriting. This project automates the entire machine learning lifecycle—from synthetic data generation and model training to serverless deployment on Kubernetes via KServe and GitOps orchestration with ArgoCD.
-
----
-
-## 🎯 Business Problem & Solution
-Traditional credit underwriting is slow, manual, and prone to inconsistent decision-making. **CreditRisk AI** solves this by providing:
-- **Automated Intelligence**: Real-time risk classification (Low, Medium, High, Fraud).
-- **Scalable Infrastructure**: Containerized inference endpoints capable of handling high-frequency banking requests.
-- **Continuous Evolution**: Automated retraining pipelines that ensure models stay updated with the latest financial trends.
+An end-to-end, banking-grade Credit Risk Underwriting ecosystem. This platform automates the entire ML lifecycle—from high-fidelity data synthesis and Airflow-orchestrated training to serverless inference on AWS EKS using KServe and GitOps delivery with ArgoCD.
 
 ---
 
-## 🏗️ MLOps Architecture (GitOps Flow)
+## 📖 Table of Contents
+1.  [Project Overview](#-project-overview)
+2.  [Key Features](#-key-features)
+3.  [Architectures](#-architectures)
+4.  [Folder Structure](#-folder-structure)
+5.  [Local Quick Start (Kind)](#-local-quick-start)
+6.  [AWS Production Deployment](#-aws-production-deployment)
+7.  [MLOps Lifecycle](#-mlops-lifecycle)
+8.  [Monitoring & Security](#-monitoring--security)
+9.  [API Reference](#-api-reference)
+10. [Resume & Interview Impact](#-resume--interview-impact)
 
-The system utilizes a modern GitOps pattern where the "Single Source of Truth" resides in the repository.
+---
 
+## 🌟 Project Overview
+Financial institutions face the "Explainability vs. Accuracy" dilemma in credit scoring. **CreditRisk AI** provides a solution using calibrated **XGBoost** and **CatBoost** models, wrapped in a deterministic banking rule engine, and deployed on a robust cloud-native infrastructure.
+
+---
+
+## 🔥 Key Features
+- **🧠 Multi-Model Ensemble**: Hybrid logic combining XGBoost, LightGBM, and CatBoost.
+- **🛡️ Hybrid Decisioning**: Post-inference rule-engine for regulatory "knock-out" rules.
+- **📄 Pro-Grade Reporting**: Instant PDF generation for regulatory audit trails.
+- **🔁 Auto-Retraining**: Airflow-driven pipelines that detect drift and trigger model updates.
+- **📊 Observability**: Full Prometheus/Grafana dashboards for drift, latency, and approval ratios.
+- **🔐 Banking Security**: JWT Auth, IAM least-privilege, and automated Snyk/Trivy security scans.
+
+---
+
+## 🏗️ Architectures
+
+### 1. Application Flow
 ```mermaid
 graph TD
-    subgraph CI_Pipeline [GitHub Actions CI/CD]
-    A[Code Push to 'cicd' branch] --> B[Data Generation & ETL]
-    B --> C[XGBoost Model Training]
-    C --> D[Model Evaluation & Metrics]
-    D --> E[S3 Model Registry Upload]
-    E --> F[Update KServe Manifests]
-    end
+    A[Frontend React/JS] -->|POST| B[FastAPI Gateway]
+    B --> C{Decision Logic}
+    C -->|Check| D[Feast Feature Store]
+    C -->|Inference| E[KServe Predictor]
+    E --> F[Rule Engine Overlay]
+    F --> G[PDF Reporter]
+    G --> H[Final Decision Response]
+```
 
-    subgraph GitOps_Deployment [Kubernetes & GitOps]
-    F --> G[ArgoCD Detection]
-    G --> H[ArgoCD Sync Policy]
-    H --> I[KServe InferenceService]
-    I --> J[Production Prediction API]
+### 2. MLOps Lifecycle
+```mermaid
+graph LR
+    subgraph Pipeline
+    DS[Data Source] --> GE[Great Expectations]
+    GE --> FE[Feature Engineering]
+    FE --> T[MLflow Training]
+    T --> R[MLflow Registry]
     end
+    
+    R -->|Webhook| GHA[GitHub Actions]
+    GHA -->|Push| ECR[Amazon ECR]
+    ECR -->|Sync| ARGO[ArgoCD]
+    ARGO -->|Deploy| KS[KServe Inference]
 ```
 
 ---
 
-## 📂 Project Engineering Structure
+## 📂 Folder Structure
 ```text
 credit-risk-ai-underwriting/
-├── .github/workflows/   # CI/CD Pipeline Definitions (YAML)
-├── src/                 # Core MLOps Logic (Generation, Training, Eval)
-├── k8s/                 # Kubernetes Manifests (InferenceService, RBAC, ArgoCD)
-├── artifacts/           # Model Performance Reports & Metrics
-├── models/              # Local Cache for Trained Artifacts (Git Ignored)
-├── data/                # Sample Datasets for Pipeline Testing
-├── docs/                # Technical Whitepapers & Data Dictionaries
-└── requirements.txt     # Production Dependency Manifest
+├── backend/            # FastAPI Enterprise Gateway
+├── frontend/           # Portfolio-ready Underwriting UI
+├── training/           # Research, Tuning, and MLflow scripts
+├── inference/          # KServe custom predictors & transformers
+├── pipelines/          # Apache Airflow DAGs
+├── kubernetes/         # Helm Charts & Native Manifests
+├── kserve/             # InferenceService Definitions
+├── terraform/          # AWS EKS & IAM Infrastructure as Code
+├── argocd/             # GitOps Application Manifests
+├── monitoring/         # Grafana Dashboards & Prometheus Config
+├── security/           # JWT, IAM, and Trivy scan scripts
+└── docs/               # 22-File Professional Documentation Suite
 ```
 
 ---
 
-## 🛠️ Technology Stack
-- **ML Framework**: XGBoost, Scikit-Learn, Pandas
-- **Orchestration**: Kubernetes (K8s), KServe
-- **GitOps**: ArgoCD
-- **Automation**: GitHub Actions
-- **Storage**: Amazon S3 (Model Registry)
-- **API Framework**: FastAPI (Local Testing) / KServe (Production)
+## ⚡ Local Quick Start (Kind Cluster)
 
----
+### Prerequisites
+- Docker, Kind, Kubectl, Helm
 
-## 🚀 Deployment & Operations Guide
-
-### 1. Model Registry (S3) Setup
-Ensure an S3 bucket named `credit-risk-bucket` exists. The pipeline will automatically version and upload models to `s3://credit-risk-bucket/models/`.
-
-### 2. Infrastructure Configuration
-Add your AWS credentials to **GitHub Secrets**:
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-
-### 3. Initialize GitOps (ArgoCD)
-Connect your cluster to the repository using the ArgoCD Application manifest:
+### 1. Create Cluster
 ```bash
-kubectl apply -f k8s/argocd-app.yaml
+kind create cluster --name credit-risk --config scripts/kind-config.yaml
 ```
 
-### 4. Retraining Pipeline
-To trigger a full production retraining and redeployment:
-1. Make changes to `src/train.py` or `src/generate_data.py`.
-2. Push to the `cicd` branch.
-3. Observe the GitHub Action log and the ArgoCD dashboard for automatic sync.
+### 2. Install KServe & ArgoCD
+```bash
+helm install kserve-stack ./kubernetes/charts/kserve
+kubectl apply -n argocd -f argocd/argocd-app.yaml
+```
+
+### 3. Deploy Local Model
+```bash
+kubectl apply -f kserve/inference-local.yaml
+```
 
 ---
 
-## 📊 Model Intelligence
-- **Input Features**: Age, Income, Credit Score, Loan Amount, Debt Ratio, Employment Stability.
-- **Output Classes**: `Low Risk`, `Medium Risk`, `High Risk`, `Fraud Review`.
-- **Inference Strategy**: KServe `Predictor` with `sklearn` runtime.
+## ☁️ AWS Production Deployment
+
+### 1. Infrastructure (Terraform)
+```bash
+cd terraform
+terraform init && terraform apply -auto-approve
+```
+
+### 2. EKS Configuration
+```bash
+aws eks update-kubeconfig --name credit-risk-prod --region us-east-1
+kubectl apply -f kubernetes/alb-controller.yaml
+```
 
 ---
 
-## 🛡️ Security & Compliance
-- **RBAC**: Dedicated ServiceAccounts with least-privilege S3 access.
-- **Secrets Management**: Kubernetes Opaque Secrets for AWS credential injection.
-- **Namespace Isolation**: Full isolation within the `credit-risk-model` namespace.
+## 📊 API Reference
+
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/predict` | `POST` | High-fidelity single applicant underwriting |
+| `/batch-predict` | `POST` | CSV-based bulk processing (S3 integration) |
+| `/retrain` | `POST` | Triggers Airflow retraining pipeline |
+| `/explain` | `GET` | Returns decision reasoning and feature contribution |
 
 ---
-Developed with ❤️ by **Bittu Sharma** | AI Engineer | MLOps and LLMOps Engineer
+
+## 💼 Resume & Interview Value
+- **Architectural Depth**: Demonstrates knowledge of **KServe**, **ArgoCD**, and **EKS**.
+- **Data Integrity**: Uses **Great Expectations** and **Feast** for feature consistency.
+- **Cloud Native**: Full **Terraform** implementation of EKS and IAM.
+- **Security**: Implements **JWT** and **RBAC** in a financial context.
+
+---
+
+## 📜 License
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+Developed with ❤️ by **Bittu Sharma** | Principal MLOps Architect

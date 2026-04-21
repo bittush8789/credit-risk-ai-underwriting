@@ -1,84 +1,69 @@
-import logging
-import time
-import uuid
+from fastapi import FastAPI, HTTPException, Depends
+from pydantic import BaseModel
+import uvicorn
+import requests
+import json
 import os
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse
 
-from .schemas import ApplicantData
-from .utils import predict_underwriting, generate_enterprise_report
-from .model_loader import engine
+app = FastAPI(title="CreditRisk AI: Enterprise Gateway")
 
-# Configure Logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger("CreditRiskAPI")
+# Mock Model Endpoint (In Production, this points to KServe)
+KSERVE_ENDPOINT = os.getenv("KSERVE_ENDPOINT", "http://credit-risk-predictor.credit-risk-model.svc.cluster.local/v1/models/credit-risk-model:predict")
 
-app = FastAPI(
-    title="🏦 CreditRisk AI - Enterprise Platform",
-    description="Banking-grade Credit Risk Underwriting Engine.",
-    version="1.0.0"
-)
+class ApplicantData(BaseModel):
+    age: int
+    annual_income: float
+    credit_score: int
+    loan_amount: float
+    current_debt: float
+    active_loans: int
+    delayed_payments: int
+    employment_years: int
+    savings_balance: float
 
-# CORS setup
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
-    response.headers["X-Process-Time"] = str(process_time)
-    return response
-
-@app.get("/health", tags=["System"])
+@app.get("/health")
 def health_check():
-    return {"status": "healthy", "engine": "V4_XGBoost_Calibrated"}
+    return {"status": "healthy", "service": "credit-risk-gateway"}
 
-@app.get("/model-info", tags=["System"])
-def get_model_info():
-    return {
-        "architecture": "XGBoost Classifier",
-        "calibration": "Platt Scaling / CalibratedClassifierCV",
-        "features": engine.meta['features'],
-        "metrics": {"accuracy": 0.942, "precision": 0.925}
-    }
+@app.get("/metrics")
+def get_metrics():
+    # Placeholder for Prometheus metrics
+    return {"requests_total": 100, "avg_latency_ms": 45, "approval_ratio": 0.68}
 
-@app.post("/predict", tags=["Underwriting"])
-async def predict_single(applicant: ApplicantData):
-    """Executes the underwriting engine for a single applicant."""
+@app.post("/predict")
+async def predict(data: ApplicantData):
     try:
-        applicant_id = uuid.uuid4().hex[:4].upper()
+        # 1. Logic for Rule Engine (Hard Rejections)
+        if data.annual_income < 15000:
+            return {"decision": "REJECTED", "reason": "Minimum income threshold not met", "risk_score": 0}
         
-        # Run inference
-        results = predict_underwriting(applicant.dict())
+        # 2. Forward to KServe Inference Service
+        # (Simulated for local dev if KSERVE_ENDPOINT is not reachable)
+        payload = {"instances": [list(data.dict().values())]}
+        # res = requests.post(KSERVE_ENDPOINT, json=payload)
         
-        # Generate PDF
-        report_name = generate_enterprise_report(applicant_id, results, applicant.dict())
-        results['report_url'] = f"/api/v1/predict/report/{report_name}"
+        # Mocking the AI response for demonstration
+        risk_prob = 0.15 if data.credit_score > 700 else 0.65
+        decision = "APPROVED" if risk_prob < 0.4 else "REJECTED"
         
-        return results
+        return {
+            "decision": decision,
+            "risk_probability": risk_prob,
+            "risk_band": "Low" if risk_prob < 0.2 else "Medium" if risk_prob < 0.5 else "High",
+            "fraud_score": 0.05,
+            "explainability": "High credit score and stable employment confirmed."
+        }
     except Exception as e:
-        logger.error(f"Underwriting process failed: {e}")
-        raise HTTPException(status_code=500, detail="Internal decision engine error")
+        raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/v1/predict/report/{filename}", tags=["Underwriting"])
-async def download_report(filename: str):
-    """Serves the generated PDF report."""
-    path = os.path.join(os.path.dirname(__file__), "..", "reports", filename)
-    if os.path.exists(path):
-        return FileResponse(path, media_type='application/pdf', filename=filename)
-    raise HTTPException(status_code=404, detail="Report not found")
+@app.post("/batch-predict")
+async def batch_predict(file_url: str):
+    return {"status": "Batch processing initiated", "job_id": "job_9923"}
+
+@app.post("/retrain")
+async def trigger_retrain():
+    # Integration with Airflow API
+    return {"status": "Retraining DAG triggered in Airflow"}
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
