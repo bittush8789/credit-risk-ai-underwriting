@@ -1,129 +1,52 @@
-# 💳 CreditRisk AI: Enterprise Underwriting & Risk Prediction Platform
+# 💳 CreditRisk AI: Enterprise MLOps Platform
 
-![Enterprise Banner](https://img.shields.io/badge/Status-Production--Ready-success?style=for-the-badge&logo=github)
-![Tech Stack](https://img.shields.io/badge/Stack-Python%20|%20FastAPI%20|%20XGBoost-blue?style=for-the-badge&logo=python)
+An end-to-end production-grade MLOps platform for Credit Risk Underwriting, featuring automated training, S3 model versioning, and KServe inference on Kubernetes.
 
-### 🚀 Solving the Modern Lending Crisis
-Traditional credit scoring often fails to capture the complexity of modern financial behavior, leading to either high default rates or unnecessary rejections of creditworthy applicants. **CreditRisk AI** is an enterprise-grade solution that bridges this gap using high-fidelity Machine Learning and a conservative banking-grade rule engine.
-
----
-
-## 🎯 Business Problem Statement
-Financial institutions lose billions annually due to **inaccurate risk assessment** and **manual underwriting bottlenecks**. Standard models often lack:
-1.  **Nuanced Risk Detection**: Failing to spot over-leveraged borrowers despite high credit scores.
-2.  **Explainability**: Rejections without clear, actionable reasons.
-3.  **Real-time Decisioning**: Manual reviews taking days instead of seconds.
-
-**CreditRisk AI** provides an automated, transparent, and calibrated underwriting system that ensures safe, profitable lending at scale.
-
----
-
-## ✨ Key Features
-- **🧠 V4 Intelligence Engine**: Calibrated XGBoost classifier trained on 120,000+ records.
-- **🛡️ Hybrid Rule Engine**: Post-inference business logic enforcing DTI caps and liquidity checks.
-- **📄 Instant PDF Reports**: Professional, bank-grade underwriting reports generated in real-time.
-- **📊 Interactive Metrics**: Deep dive into model precision, feature importance, and performance.
-- **🔒 Security-First**: Strict input validation and Pydantic-enforced schemas for financial data safety.
-
----
-
-## 🏗️ System Architecture
+## 🏗️ MLOps Architecture
+The system follows a GitOps workflow using ArgoCD and KServe:
 
 ```mermaid
 graph TD
-    A[User Browser] -->|REST API| B[FastAPI Backend]
-    B --> C[Preprocessing Layer]
-    C --> D[ML Model Layer - XGBoost]
-    D --> E[Hybrid Rule Engine]
-    E -->|Validation| F[Prediction Response]
-    F --> G[PDF Report Generator]
-    G -->|Download| A
+    A[Data Scientist Pushes to 'cicd' branch] --> B[GitHub Actions Pipeline]
+    B --> C[Data Gen & Training]
+    B --> D[Evaluate & Artifact Log]
+    B --> E[Upload Model to S3]
+    E --> F[Update k8s/inference.yaml]
+    F --> G[ArgoCD Sync]
+    G --> H[KServe Deployment on K8s]
+    H --> I[Inference Endpoint Live]
 ```
-
----
 
 ## 📂 Project Structure
-```text
-advanced-credit-underwriting/
-├── backend/            # FastAPI Production Server
-├── frontend/           # Modern Vanilla JS/CSS/HTML Frontend
-├── models/             # Calibrated ML Artifacts (.pkl)
-├── data/               # Final V4 Datasets
-├── notebooks/          # Final Research & Training
-├── docs/               # Technical Documentation Folder
-├── tests/              # Edge Case & API Testing
-├── requirements.txt    # Dependency Manifest
-└── README.md           # Professional Project Overview
-```
+- `src/`: Core training, generation, and evaluation scripts.
+- `k8s/`: Kubernetes manifests for KServe and ArgoCD.
+- `.github/workflows/`: Automated CI/CD pipeline.
+- `models/`: Local model cache (ignored by git).
+- `artifacts/`: Model evaluation metrics and metadata.
 
----
+## 🚀 Deployment Guide
 
-## 🤖 ML Lifecycle & Lifecycle
-1.  **Data Synthesis**: Generated 120k records simulating diverse financial stress scenarios.
-2.  **Feature Engineering**: Derived DTI, Savings-to-Debt, and Loan-to-Income ratios.
-3.  **Model Training**: Stratified K-Fold XGBoost with Platt Scaling for probability calibration.
-4.  **Integration**: Hybrid coupling of ML results with conservative banking "knock-out" rules.
+### 1. S3 Setup
+Create an S3 bucket named `credit-risk-bucket` and ensure your AWS credentials have write access.
 
----
+### 2. GitHub Secrets
+Add the following secrets to your GitHub repository:
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
 
-## ⚡ Installation & Local Run
-
-### 1. Environment Setup
+### 3. Kubernetes Setup
+Install KServe and ArgoCD on your cluster.
+Apply the ArgoCD Application manifest:
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/credit-risk-ai.git
-cd credit-risk-ai
-
-# Install dependencies
-pip install -r requirements.txt
+kubectl apply -f k8s/argocd-app.yaml
 ```
 
-### 2. Launch the Engine
-```bash
-# Start FastAPI backend
-uvicorn backend.main:app --reload
-```
-
-### 3. Access the Platform
-Simply open `frontend/index.html` in any modern web browser.
-
----
-
-## 📊 Model Performance
-| Metric | Score |
-| :--- | :--- |
-| **Accuracy** | 94.2% |
-| **Precision** | 92.5% |
-| **Recall** | 95.1% |
-| **ROC AUC** | 0.97 |
-
----
-
-## 📈 Sample Prediction
-**Applicant**: 28yo, $85k Income, 710 Credit Score, $15k Debt.
-- **ML Score**: 89% Approval (Low Risk)
-- **Rule Engine**: PASS (DTI < 0.65)
-- **Final Decision**: **APPROVED**
-- **Report**: [Download PDF Underwriting Report]
-
----
-
-## 🔮 Future Enhancements
-- [ ] **LLM Integration**: AI-powered narrative analysis of credit remarks.
-- [ ] **Bureau API Connectors**: Direct integration with Equifax/Experian APIs.
-- [ ] **Advanced Identity Verification**: Integrated KYC and anti-fraud facial recognition.
-
----
-
-## 💼 Resume & Portfolio Impact
-- **Financial Engineering**: Demonstrates expertise in DTI ratios and banking risk metrics.
-- **Production ML**: Showcases model calibration (Platt Scaling) and hybrid decision systems.
-- **Full-Stack AI**: End-to-end integration of FastAPI with high-performance ML inference.
-
----
-
-## 📜 License
-Distributed under the MIT License. See `LICENSE` for more information.
+### 4. Continuous Deployment
+Every push to the `cicd` branch triggers:
+1.  **Automated Training**: Regenerates data and trains the XGBoost model.
+2.  **S3 Upload**: Pushes the new `.pkl` artifacts to your model registry.
+3.  **GitOps Update**: Updates `inference.yaml` with the latest model path.
+4.  **Auto-Sync**: ArgoCD detects the change and redeploys the KServe InferenceService.
 
 ---
 Developed with ❤️ by **Bittu Sharma** | AI Engineer | MLOps and LLMOps Engineer

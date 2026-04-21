@@ -1,0 +1,10 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: credit-risk-predictor
+  namespace: credit-risk-model
+spec:
+  predictor:
+    serviceAccountName: sa-s3-access
+    sklearn:
+      storageUri: s3://credit-risk-bucket/models/credit_risk_model.pkl
