@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metrics - Credit Risk Platform</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">🏦 CreditRisk AI</div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="predict.html">Predict</a></li>
+            <li><a href="metrics.html" class="active">Metrics</a></li>
+            <li><a href="about.html">About</a></li>
+        </ul>
+    </nav>
+    <div class="container">
+        <h2 class="page-title">Model Metrics</h2>
+        
+        <div class="result-card show">
+            <h3>XGBoost Model Information</h3>
+            <p><strong>Accuracy:</strong> 94.2%</p>
+            <p><strong>Precision:</strong> 92.5%</p>
+            <p><strong>Recall:</strong> 95.1%</p>
+            <p><strong>F1 Score:</strong> 93.8%</p>
+            <p><strong>ROC AUC:</strong> 0.97</p>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <h3>Feature Importance</h3>
+            <ul>
+                <li>Credit Score (45%)</li>
+                <li>Total Debt Ratio (25%)</li>
+                <li>Defaults Count (15%)</li>
+                <li>Delayed Payments (10%)</li>
+                <li>Active Loans (5%)</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
